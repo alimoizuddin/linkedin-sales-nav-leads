@@ -11,7 +11,7 @@ This skill is for browser-driven extraction from the user's existing Sales Navig
 
 Do not confuse a request to collect business prospects with a request to recruit a salesperson or sales partner. Candidate sourcing may use the same live Sales Navigator surface, but it is a separate shortlist task: do not add candidates to a prospect workbook, save them to a list, or message them unless the user explicitly asks for those actions.
 
-This skill also covers the common follow-up where the user wants a public LinkedIn profile URL added later. In that phase, the source of truth for the lead list is still the previously extracted sheet or checkpoint, but the public URL lookup should use a general web search result, not Sales Navigator profile URLs.
+This skill also covers the common follow-up where the user wants a public LinkedIn profile URL added later. Keep the extracted sheet or checkpoint as the source of truth. Use Google to find and verify the public URL from the lead's visible name, position, and company; do not open individual LinkedIn profiles unless the user explicitly asks for that fallback.
 
 If the user first asks what you understood, asks you to hold off, or says something like `just let me know don't execute`, summarize the intended extraction plan and wait for explicit approval before collecting anything.
 
@@ -53,15 +53,22 @@ For full runs, prefer one checkpoint file per Sales Navigator page, for example 
 
 When the user specifies an inclusive range such as pages `66` through `4`, write that range into the ledger before navigating. Visit every page in the requested direction, mark each one only after its checkpoint passes validation, and explicitly surface any page that could not be collected. Do not infer that a page was completed because an adjacent page succeeded.
 
-When the user wants a sheet like the ones created in this task, default to these columns:
+For a result-card extraction without URL capture, default to these columns:
 
 - `Name`: full visible lead name
-- `Company`: company name shown on the result card
 - `Position`: position/title as shown on LinkedIn
+- `Company`: company name shown on the result card
 
 If the user asks for a specific sheet name, use it exactly for both the worksheet tab and the exported filename where practical.
 
-For first-pass extraction, do not add a profile URL column unless it is directly available in a stable public form without guessing. Sales Navigator-only links do not qualify as public profile URLs.
+When the user asks for public URL capture, produce exactly these columns unless they explicitly request more:
+
+- `Name`
+- `Position`
+- `Company`
+- `LinkedIn URL`
+
+Use other visible details only to confirm the lead identity. Do not store them by default. A Sales Navigator lead-page URL does not qualify as a public profile URL; use a confident public `/in/...` result from Google, or the value returned by `Copy LinkedIn.com URL` only as an explicit fallback.
 
 When the user asks for multiple searches or regions in the same thread, keep outputs separate unless they explicitly request a combined workbook. Use filenames that reflect the user's requested names, normalized only as needed for the filesystem.
 
@@ -244,7 +251,7 @@ Do not repeatedly retry the same page in a tight loop. Two clean repair attempts
 
 When reverse pagination is used, preserve the same ledger and validation rules. A reverse sweep is a recovery strategy, not evidence that all pages above or below it were collected.
 
-When enriching an already-exported workbook with public LinkedIn URLs, persist progress after every row rather than every page. Web search rate limits can interrupt the run much sooner than Sales Navigator page extraction.
+When enriching an already-exported workbook with public LinkedIn URLs, persist progress after every row rather than every page. Google-only discovery is the default because it avoids individual LinkedIn profile visits; web-search rate limits can still interrupt a run.
 
 Keep extraction and enrichment checkpoints separate. A Sales Navigator checkpoint is page-based; a public URL enrichment checkpoint should be query- or row-based and should survive browser tab resets.
 
@@ -254,10 +261,15 @@ Use this section only when the user explicitly wants a public LinkedIn profile U
 
 Preferred method:
 
-- keep the extracted lead list as the source rows
-- search the web using a focused query built from `Name`, `Position`, and `Company`, for example `Name Position Company LinkedIn`
-- inspect the search result page for a public `linkedin.com/in/` result
-- save only confident matches
+- capture only `Name`, `Position`, and `Company` from the visible Sales Navigator result card or existing workbook row
+- search Google with `Name Position Company LinkedIn`
+- identify the strongest `linkedin.com/in/...` result
+- confirm that the result title and snippet strongly match the person's name and at least one of role or company
+- save that public profile URL only when the match is confident
+
+Do not open the public LinkedIn profile to obtain or verify the URL. The Google result is the verification surface. If the name, role, company, or profile path is ambiguous or contradictory, mark the row for review instead of guessing.
+
+Use the Sales Navigator `Copy LinkedIn.com URL` action only when the user explicitly asks for it or when Google cannot produce a confident public profile result. It is distinct from the Sales Navigator lead-page URL. Do not click `Save to list`, `Message`, `Connect`, `Add note`, or any other action unless the user explicitly asks.
 
 If the user says `do not use LinkedIn, use Google`, use Google search result pages only for lookup and do not open LinkedIn or Sales Navigator profile pages. It is still acceptable to save a public LinkedIn profile URL returned by Google.
 
@@ -278,7 +290,7 @@ Confidence rules:
 
 Do not:
 
-- copy Sales Navigator URLs
+- copy or save the Sales Navigator lead-page URL
 - guess profile URLs from name slugs
 - force a match because the name is similar
 - backfill uncertain rows with non-profile LinkedIn pages such as posts, people directories, company pages, or videos
