@@ -64,9 +64,11 @@ If the user asks for a specific sheet name, use it exactly for both the workshee
 When the user asks for public URL capture, produce exactly these columns unless they explicitly request more:
 
 - `Name`
-- `Position`
 - `Company`
+- `Position`
 - `LinkedIn URL`
+
+Keep this exact column order in checkpoints, intermediate exports, and the final workbook.
 
 Use other visible details only to confirm the lead identity. Do not store them by default. A Sales Navigator lead-page URL does not qualify as a public profile URL; use a confident public `/in/...` result from Google, or the value returned by `Copy LinkedIn.com URL` only as an explicit fallback.
 
